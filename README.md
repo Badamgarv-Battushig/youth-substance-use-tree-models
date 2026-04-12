@@ -1,260 +1,153 @@
-\# Youth Substance Use Prediction using Tree-Based Models
+# Youth Substance Use Prediction using Tree-Based Models
+
+## Overview
 
+This project analyzes youth substance use using tree-based machine learning models.
+The goal is to predict marijuana and alcohol use and identify the most important influencing factors.
 
+The models applied include:
+- Decision Trees
+- Random Forest
+- Boosting
 
-\## Overview
+These are used across binary classification, multi-class classification, and regression tasks.
 
-This project analyzes and predicts youth substance use using tree-based machine learning models. The goal is to identify patterns in marijuana and alcohol use and determine which factors are most influential.
+## Objectives
 
+- Predict marijuana use (binary classification)
+- Predict levels of marijuana use (multi-class classification)
+- Predict alcohol use frequency (regression)
+- Compare model performance
+- Identify key predictors of substance use
 
+## Dataset
 
-The models applied include Decision Trees, Random Forest, and Boosting across binary classification, multi-class classification, and regression tasks.
+Dataset: youth_data
 
+The dataset contains:
+- Demographic variables
+- Behavioral factors
+- Peer influence
+- Substance use information
 
+Note: The dataset was partially preprocessed. Additional cleaning was performed before modeling.
 
-\## Objectives
+## Data Cleaning
 
-\- Predict marijuana use through binary classification
+- Replaced invalid codes (91, 93, 94, 97, 98) with NA
+- Removed missing values
+- Used imputed variables when available
 
-\- Predict levels of marijuana use through multi-class classification
+## Data Dictionary (Selected Variables)
 
-\- Predict alcohol use frequency through regression
+### Binary Classification (Marijuana Use)
 
-\- Compare model performance
+MRJFLAG   - Marijuana use (0 = No, 1 = Yes)
+YOSELL2   - Selling-related behavior
+YOFIGHT2  - Physical fights
+IRSEX     - Sex
+INCOME    - Household income
+EDUSCHLGO - School enrollment
+AVGGRADE  - Average grades
+FRDMEVR2  - Friends used marijuana
+PARCHKHW  - Parent checks homework
+RLGATTD   - Religious attendance
 
-\- Identify key predictors of substance use
+### Multi-class Classification (Marijuana Levels)
 
+STNDSMJ   - Marijuana use level
+IRSEX     - Sex
+INCOME    - Household income
+EDUSCHLGO - School enrollment
+AVGGRADE  - Average grades
+YOFIGHT2  - Physical fights
+FRDMEVR2  - Friends used marijuana
+PARCHKHW  - Parent checks homework
+RLGATTD   - Religious attendance
 
+### Regression (Alcohol Use)
 
-\## Dataset
+ALCYDAYS  - Alcohol use days
+IRSEX     - Sex
+INCOME    - Household income
+EDUSCHLGO - School enrollment
+AVGGRADE  - Average grades
+YOFIGHT2  - Physical fights
+FRDMEVR2  - Friends used marijuana
+PARCHKHW  - Parent checks homework
+RLGATTD   - Religious attendance
 
-The dataset used is `youth\_data`, which contains:
+## Models Used
 
-\- Demographic variables
+### Decision Tree
+- Used for classification and regression
+- Easy to interpret
+- Helps explain variable importance
 
-\- Behavioral factors
+### Random Forest
+- Ensemble of multiple trees
+- Improves stability and reduces variance
 
-\- Peer influence
+### Boosting
+- Sequential tree-based method
+- Focuses on correcting previous errors
 
-\- Substance use information
+## Results
 
+- Decision Tree (Binary): ~84.6% accuracy
+- Random Forest (Binary): ~84.5% accuracy
+- Boosting (Binary): ~84.6% accuracy
+- Decision Tree (Multi-class): ~75.3% accuracy
+- Regression Tree: MSE ≈ 2.70
 
+## Key Findings
 
-The dataset was partially preprocessed, and additional cleaning was performed before modeling.
+- Behavioral and peer-related variables were strong predictors
+- Selling-related behavior was highly associated with marijuana use
+- Binary classification performed better than multi-class classification
+- Ensemble methods did not significantly outperform decision trees
 
+## Ethical Considerations
 
+- Predictions may be misused in decision-making
+- Potential bias and unfair treatment
+- Models show patterns, not causation
+- Results should not be used to label individuals
 
-\## Data Cleaning
+## Technologies Used
 
-\- Replaced invalid codes `91`, `93`, `94`, `97`, and `98` with `NA`
+- R
+- rpart
+- rpart.plot
+- randomForest
+- gbm
 
-\- Removed missing values
+## Repository Structure
 
-\- Used imputed variables when available
+data/
+  youth_data.RData
 
+code/
+  Practical_Homework_1.Rmd
 
+report/
+  Practice_Homework_1.pptx
 
-\## Data Dictionary (Selected Variables)
+README.md
 
+## Future Work
 
+- Perform hyperparameter tuning
+- Apply cross-validation
+- Improve multi-class model performance
+- Explore additional predictors
 
-\### Binary Classification (Marijuana Use)
-
-\- `MRJFLAG` – Marijuana use (0 = No, 1 = Yes)
-
-\- `YOSELL2` – Selling-related behavior
-
-\- `YOFIGHT2` – Physical fights
-
-\- `IRSEX` – Sex
-
-\- `INCOME` – Household income
-
-\- `EDUSCHLGO` – School enrollment
-
-\- `AVGGRADE` – Average grades
-
-\- `FRDMEVR2` – Friends used marijuana
-
-\- `PARCHKHW` – Parent checks homework
-
-\- `RLGATTD` – Religious attendance
-
-
-
-\### Multi-class Classification (Marijuana Levels)
-
-\- `STNDSMJ` – Marijuana use level
-
-\- `IRSEX` – Sex
-
-\- `INCOME` – Household income
-
-\- `EDUSCHLGO` – School enrollment
-
-\- `AVGGRADE` – Average grades
-
-\- `YOFIGHT2` – Physical fights
-
-\- `FRDMEVR2` – Friends used marijuana
-
-\- `PARCHKHW` – Parent checks homework
-
-\- `RLGATTD` – Religious attendance
-
-
-
-\### Regression (Alcohol Use)
-
-\- `ALCYDAYS` – Alcohol use days
-
-\- `IRSEX` – Sex
-
-\- `INCOME` – Household income
-
-\- `EDUSCHLGO` – School enrollment
-
-\- `AVGGRADE` – Average grades
-
-\- `YOFIGHT2` – Physical fights
-
-\- `FRDMEVR2` – Friends used marijuana
-
-\- `PARCHKHW` – Parent checks homework
-
-\- `RLGATTD` – Religious attendance
-
-
-
-\## Models Used
-
-
-
-\### Decision Tree
-
-\- Used for classification and regression
-
-\- Easy to interpret
-
-\- Helps explain variable importance and tree paths
-
-
-
-\### Random Forest
-
-\- Ensemble of many decision trees
-
-\- Improves stability and reduces variance
-
-
-
-\### Boosting
-
-\- Sequential tree-based method
-
-\- Focuses on correcting previous prediction errors
-
-
-
-\## Results
-
-\- \*\*Decision Tree (Binary):\*\* \~84.6% accuracy
-
-\- \*\*Random Forest (Binary):\*\* \~84.5% accuracy
-
-\- \*\*Boosting (Binary):\*\* \~84.6% accuracy
-
-\- \*\*Decision Tree (Multi-class):\*\* \~75.3% accuracy
-
-\- \*\*Regression Tree:\*\* MSE ≈ 2.70
-
-
-
-\## Key Findings
-
-\- Behavioral and peer-related variables were strong predictors
-
-\- Selling-related behavior was highly associated with marijuana use
-
-\- Binary classification performed better than multi-class classification
-
-\- Ensemble methods did not significantly outperform the decision tree in this case
-
-
-
-\## Ethical Considerations
-
-\- Predictions may be misused in decision-making
-
-\- There is potential for bias and unfair treatment
-
-\- Models identify patterns, not causation
-
-\- Results should be used for insight, not for labeling individuals
-
-
-
-\## Technologies Used
-
-\- R
-
-\- `rpart`
-
-\- `rpart.plot`
-
-\- `randomForest`
-
-\- `gbm`
-
-
-
-\## Repository Structure
-
-\- `data/`
-
-&#x20; - `youth\_data.RData`
-
-
-
-\- `code/`
-
-&#x20; - `Practical\_Homework\_1.Rmd`
-
-
-
-\- `report/`
-
-&#x20; - `Practice Homework 1.pptx`
-
-
-
-\- `README.md`
-
-
-
-\## Future Work
-
-\- Perform hyperparameter tuning
-
-\- Apply cross-validation
-
-\- Improve multi-class model performance
-
-\- Explore additional predictors
-
-
-
-\## Author
+## Author
 
 Badamgarav Battushig  
-
 DATA 5322 – Statistical Machine Learning II  
-
 Seattle University
 
+## License
 
-
-\## License
-
-This project is for academic purposes.
-
+This project is for academic purposes only.
