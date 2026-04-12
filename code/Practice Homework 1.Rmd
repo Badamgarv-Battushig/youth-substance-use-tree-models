@@ -1,0 +1,411 @@
+---
+title: "Practical Homework 1"
+author: "Badamgarav Battushig"
+date: "2026-04-11"
+output: html_document
+---
+
+### Youth Substance Use Prediction using Tree-Based Models
+
+This analysis explores factors associated with youth drug use using decision tree models. In this analysis, classification and regression tree (CART), Random Forest, and boosting methods are used. The goal is to understand which variables are important predictors and how different models perform.
+
+### Data Type Comparison
+
+This analysis included three types of modeling approaches based on the type of response variable.
+
+Binary classification was used for marijuana use (`MRJFLAG`), where the outcome has two categories (yes or no). Multi-class classification was used for levels of marijuana use (`STNDSMJ`), where the outcome has more than two categories. Regression was used for alcohol use days (`ALCYDAYS`), where the outcome is a numeric value.
+
+Each type of model requires a different approach, as classification models assign observations to categories, while regression models predict continuous values.
+
+**This approach ensures that each model is aligned with the appropriate outcome type while avoiding redundancy between predictors and response variables.**
+
+---
+
+### Load Required Libraries
+
+```{r}
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(gbm)
+library(dplyr)
+```
+
+---
+
+### Load Dataset
+
+```{r}
+load("C:/Users/badam/Downloads/youth_data.Rdata")
+head(df)
+```
+
+---
+
+### Understanding the Dataset
+
+The dataset `youth_data` is used as the main dataset for this analysis. It includes demographic variables, youth experiences, and substance use information.
+
+```{r}
+# Rename df to youth_data for clarity
+youth_data <- df
+
+# Check structure
+str(youth_data)
+
+# Check size
+dim(youth_data)
+```
+
+```{r}
+# See variables in each group
+demographic_cols
+substance_cols
+youth_experience_cols
+```
+
+#### Data Dictionary (Selected Variables)
+
+The variables are grouped based on the dataset used for each model.
+
+**1. Binary Classification Dataset (Marijuana Use)**
+
+MRJFLAG – Marijuana use (0 = No, 1 = Yes)  
+YOSELL2 – Involvement in selling-related activities  
+YOFIGHT2 – Involvement in physical fights  
+IRSEX – Sex (1 = Male, 2 = Female)  
+INCOME – Household income level  
+EDUSCHLGO – School enrollment status  
+AVGGRADE – Average grades in school  
+FRDMEVR2 – Friends have ever used marijuana  
+PARCHKHW – Parents check homework  
+RLGATTD – Religious service attendance  
+
+**2. Multi-class Classification Dataset (Marijuana Levels)**
+
+STNDSMJ – Level of marijuana use (categorical levels such as low, medium, high)  
+IRSEX – Sex (1 = Male, 2 = Female)  
+INCOME – Household income level  
+EDUSCHLGO – School enrollment status  
+AVGGRADE – Average grades in school  
+YOFIGHT2 – Involvement in physical fights  
+FRDMEVR2 – Friends have ever used marijuana  
+PARCHKHW – Parents check homework  
+RLGATTD – Religious service attendance  
+
+**3. Regression Dataset (Alcohol Use)**
+
+ALCYDAYS – Number of days alcohol was used  
+IRSEX – Sex (1 = Male, 2 = Female)  
+INCOME – Household income level  
+EDUSCHLGO – School enrollment status  
+AVGGRADE – Average grades in school  
+YOFIGHT2 – Involvement in physical fights  
+FRDMEVR2 – Friends have ever used marijuana  
+PARCHKHW – Parents check homework  
+RLGATTD – Religious service attendance  
+
+---
+
+### Renaming the variables
+
+```{r}
+youth_data <- youth_data %>%
+  rename(
+    Marijuana_use = MRJFLAG,
+    Selling_behavior = YOSELL2,
+    Physical_fight = YOFIGHT2,
+    Sex = IRSEX,
+    Race = NEWRACE2,
+    Household_income = INCOME,
+    School_enrollment = EDUSCHLGO,
+    Average_grades = AVGGRADE,
+    Friends_used_marijuana = FRDMEVR2,
+    Parent_checks_homework = PARCHKHW,
+    Religious_attendance = RLGATTD,
+    Marijuana_use_level = STNDSMJ,
+    Alcohol_use_days = ALCYDAYS,
+    Parent_helps_homework = PARHLPHW,
+  )
+```
+
+---
+
+#### Data Cleaning
+
+Certain variables in the dataset use special codes such as 91, 93, 94, 97, and 98 to represent non-response or alternative answers (never used, refused, or missing). These values were replaced with NA to ensure that the models do not treat them as valid numeric values.
+
+```{r}
+youth_data[youth_data %in% c(91, 93, 94, 97, 98)] <- NA
+summary(youth_data)
+```
+
+Some variables use values such as 991 to represent missing, skipped, or not applicable responses.These values should be treated as missing so they do not distort the analysis.
+
+```{r}
+# Replace special missing-value code with NA
+youth_data[youth_data == 991] <- NA
+
+# Check summary again after cleaning
+summary(youth_data)
+```
+
+---
+
+### 1. Binary Classification: Marijuana Use
+
+In this analysis, the response variable is converted into a binary outcome to indicate whether an individual engages in drug use or not. This transformation simplifies the problem into a classification task with two categories (0 = no use, 1 = use). The response variable is `Marijuana_use`, which indicates whether an individual has used marijuana.
+
+#### Prepare Data for Binary Classification
+
+Create a dataset `mj_df` focused on predicting marijuana use (`Marijuana_use`).  
+Relevant demographic, behavioral, and social total 10 variables are selected.
+
+```{r}
+# Create dataset
+mj_df <- youth_data[, c(
+  "Marijuana_use",
+  "Sex",
+  "Race",
+  "Household_income",
+  "School_enrollment",
+  "Average_grades",
+  "Parent_checks_homework",
+  "Parent_helps_homework",
+  "Physical_fight",
+  "Selling_behavior",
+  "Religious_attendance"
+)]
+
+# Remove missing values
+mj_df <- na.omit(mj_df)
+
+# Convert target to factor
+mj_df$Marijuana_use <- as.factor(mj_df$Marijuana_use)
+
+# Check
+str(mj_df)
+```
+
+#### Train/Test Split
+
+```{r}
+set.seed(1)
+
+train_index <- sample(1:nrow(mj_df), 0.7 * nrow(mj_df))
+
+train_data <- mj_df[train_index, ]
+test_data  <- mj_df[-train_index, ]
+```
+
+#### Fit Decision Tree Model
+
+```{r}
+tree_mj <- rpart(Marijuana_use ~ ., data = train_data, method = "class")
+
+rpart.plot(tree_mj, type = 2, extra = 104, fallen.leaves = T)
+```
+
+
+The tree primarily splits on selling related behavior (`Selling_behavior`), showing that this is the most important predictor in the model. One path in the tree shows that if a respondent has not engaged in selling related activities (`Selling_behavior = 2`), the model predicts that the individual does not use marijuana. This path indicates that individuals not involved in selling related behavior are classified as low risk for marijuana use.
+
+#### Model Evaluation
+
+```{r}
+# Predict
+pred_mj <- predict(tree_mj, test_data, type = "class")
+
+# Accuracy
+accuracy_mj <- mean(pred_mj == test_data$Marijuana_use)
+accuracy_mj
+```
+
+The decision tree achieved an accuracy of approximately 85.9% on the test set.This result demonstrates the model performs well in predicting marijuana use.  
+
+---
+
+### 2. Random Forest Model:Marijuana Use
+
+In this analysis, the Random Forest model is used to identify the most influential predictors of drug use and evaluate the model’s classification performance on the test dataset.
+  -Number of trees: 100
+  -Method: bootstrap sampling + random feature selection
+
+```{r}
+# Fit Random Forest model
+rf_mj <- randomForest(Marijuana_use ~ ., data = train_data, ntree = 100)
+
+# Predict on test set
+rf_pred <- predict(rf_mj, test_data)
+
+# Accuracy
+rf_accuracy <- mean(rf_pred == test_data$Marijuana_use)
+rf_accuracy
+
+# Variable importance
+varImpPlot(rf_mj)
+```
+
+The Random Forest model achieved about 85.7% accuracy on the test dataset, showing it can correctly classify most marijuana users and non-users. The variable importance plot gives more insight into the model’s behavior. It shows that peer influence, perception of marijuana use, and behavioral factors have the strongest impact, suggesting these play a key role in youth marijuana use.
+
+---
+
+### 3. Boosting Model:Marijuana Use
+
+A boosting model is applied to improve prediction performance. Unlike Random Forest, boosting builds trees sequentially, where each new tree focuses on correcting errors from previous ones.
+
+```{r}
+# Convert target to numeric (required for gbm)
+train_data$Marijuana_use_num <- as.numeric(train_data$Marijuana_use) - 1
+test_data$Marijuana_use_num  <- as.numeric(test_data$Marijuana_use) - 1
+
+# Fit boosting model
+boost_mj <- gbm(
+  Marijuana_use_num ~ . - Marijuana_use,
+  data = train_data,
+  distribution = "bernoulli",
+  n.trees = 100,
+  interaction.depth = 2,
+  shrinkage = 0.01
+)
+
+# Predict probabilities
+boost_prob <- predict(boost_mj, test_data, n.trees = 100, type = "response")
+
+# Convert to class (0/1)
+boost_pred <- ifelse(boost_prob > 0.5, 1, 0)
+
+# Accuracy
+boost_accuracy <- mean(boost_pred == test_data$Marijuana_use_num)
+boost_accuracy
+```
+
+The boosting model achieved about 85.9% accuracy on the test dataset, showing it can correctly classify most marijuana users and non-users. The boosting model performs well.
+
+---
+
+### 4. Multi-class Classification: Marijuana use
+
+A decision tree model is used to predict levels of marijuana use (`Marijuana_use_level`), which contains multiple categories representing different levels of use.
+
+```{r}
+# Create dataset for multi-class classification
+mc_df <- youth_data[, c(
+  "Marijuana_use_level",
+  "Sex",
+  "Household_income",
+  "School_enrollment",
+  "Average_grades",
+  "Physical_fight",
+  "Friends_used_marijuana",
+  "Parent_checks_homework",
+  "Religious_attendance"
+)]
+
+# Remove missing values
+mc_df <- na.omit(mc_df)
+
+# Convert target to factor for multi-class classification
+mc_df$Marijuana_use_level <- as.factor(mc_df$Marijuana_use_level)
+```
+
+#### Train / Test Split
+
+```{r}
+set.seed(1)
+
+train_index <- sample(1:nrow(mc_df), 0.7 * nrow(mc_df))
+
+train_mc <- mc_df[train_index, ]
+test_mc  <- mc_df[-train_index, ]
+```
+
+#### Model
+
+```{r}
+tree_mc <- rpart(Marijuana_use_level ~ ., data = train_mc, method = "class")
+
+rpart.plot(tree_mc, type = 2, extra = 104, fallen.leaves = TRUE, box.palette = "Blues")
+```
+
+#### Evaluation
+
+```{r}
+pred_mc <- predict(tree_mc, test_mc, type = "class")
+
+accuracy_mc <- mean(pred_mc == test_mc$Marijuana_use_level)
+
+accuracy_mc
+```
+
+The decision tree model achieved about 76.1% accuracy when predicting levels of marijuana use (Marijuana_use_level). While this shows good performance, but it is lower than the binary classification model. At the same time, the tree was able to create meaningful splits, indicating that certain predictors help distinguish between different usage levels. 
+
+---
+
+### 5.Regression Model: Alcohol use
+
+Regression is used when the response variable is numeric rather than categorical. In this case, the goal is to predict the number of days alcohol was used (`Alcohol_use_days`). This model helps to understand how different factors influence the level of alcohol use rather than just whether someone uses alcohol or not.
+
+```{r}
+# Create dataset for regression
+reg_df <- youth_data[, c(
+  "Alcohol_use_days",
+  "Sex",
+  "Household_income",
+  "School_enrollment",
+  "Average_grades",
+  "Physical_fight",
+  "Friends_used_marijuana",
+  "Parent_checks_homework",
+  "Religious_attendance"
+)]
+
+# Remove missing values
+reg_df <- na.omit(reg_df)
+```
+
+#### Train/Test Split
+
+```{r}
+set.seed(1)
+
+train_index <- sample(1:nrow(reg_df), 0.7 * nrow(reg_df))
+
+train_reg <- reg_df[train_index, ]
+test_reg  <- reg_df[-train_index, ]
+```
+
+#### Model
+
+```{r}
+tree_reg <- rpart(Alcohol_use_days ~ ., data = train_reg, method = "anova")
+
+rpart.plot(tree_reg, type = 2, fallen.leaves = TRUE, box.palette = "Blues")
+```
+
+#### Evaulation
+
+```{r}
+pred_reg <- predict(tree_reg, test_reg)
+
+mse_reg <- mean((pred_reg - test_reg$Alcohol_use_days)^2)
+
+mse_reg
+```
+
+The regression tree was used to predict the number of days alcohol was used (`Alcohol_use_days`), and it produced a test mean squared error (MSE) of about 2.7. This represents the average difference between the predicted and actual values. Interestingly, the tree split on FRDMEVR2, suggesting that peer influence is a key factor in alcohol use. Individuals in one group had a predicted average of around 4.2 days, whereas the other group had a higher average of about 5.5 days.
+
+---
+
+### Model Comparison
+
+The decision tree, Random Forest, and boosting models were compared using the same target variable (`Marijuana_use`) and the results were quite similar around 85–86%. This shows that the relationship between the predictors and marijuana use is relatively simple, and a single decision tree was already able to capture most of the pattern in the data.Random Forest and boosting, which are ensemble methods, did not significantly improve performance compared to the decision tree. Hyperparameter tuning was not extensively performed in this analysis, and default model settings were used. Future work could improve model performance by tuning parameters such as tree depth, complexity parameter, and number of trees.
+
+---
+
+### Ethical Considerations
+
+When interpreting the results, it is important not to make assumptions about individuals or groups. The model shows patterns in the data, but this does not mean it proves cause and effect.
+
+For example, demographic or behavioral variables may be linked to substance use, but they should not be used to label or stereotype people. Misunderstanding these results can lead to unfair conclusions. Furthermore, risk of misusing model predictions in decision-making. For instance, if these results were used by schools or organizations, individuals labeled as “high risk” could be unfairly targeted or monitored. This may lead to unequal treatment.
+
+Therefore, the results should be used carefully, focusing on general trends rather than judging specific individuals or groups.
