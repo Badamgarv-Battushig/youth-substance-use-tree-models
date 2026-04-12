@@ -22,7 +22,7 @@ These are used across binary classification, multi-class classification, and reg
 
 ## Dataset
 
-Dataset: youth_data
+- youth_data.Rdata: https://github.com/Badamgarv-Battushig/youth-substance-use-tree-models/blob/main/data/youth_data.Rdata
 
 The dataset contains:
 - Demographic variables
@@ -34,7 +34,7 @@ Note: The dataset was partially preprocessed. Additional cleaning was performed 
 
 ## Data Cleaning
 
-- Replaced invalid codes (91, 93, 94, 97, 98) with NA
+- Replaced invalid codes with NA
 - Removed missing values
 - Used imputed variables when available
 
